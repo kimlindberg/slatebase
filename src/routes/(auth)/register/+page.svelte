@@ -10,6 +10,7 @@
     CardHeader,
     CardTitle
   } from '$lib/components/ui/card';
+  import { APP_NAME } from '$lib/constants';
 
   let email = '';
   let password = '';
@@ -40,7 +41,7 @@
   <Card>
     <CardHeader>
       <CardTitle class="text-2xl">Create an account</CardTitle>
-      <CardDescription>Get started with slatebase.</CardDescription>
+      <CardDescription>Get started with {APP_NAME}.</CardDescription>
     </CardHeader>
     <CardContent>
       <form

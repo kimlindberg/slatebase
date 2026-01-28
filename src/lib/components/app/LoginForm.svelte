@@ -12,10 +12,11 @@
   } from '$lib/components/ui/card';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
+  import { APP_NAME } from '$lib/constants';
 
   let {
     title = 'Sign in',
-    description = 'Welcome back to slatebase.',
+    description = `Welcome back to ${APP_NAME}.`,
     nextPath
   }: {
     title?: string;

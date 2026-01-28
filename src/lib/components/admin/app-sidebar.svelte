@@ -21,6 +21,7 @@
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 	import type { ComponentProps } from "svelte";
 	import type { User } from "@supabase/supabase-js";
+	import { APP_NAME } from "$lib/constants";
 
 	const data = {
 		navMain: [
@@ -158,7 +159,7 @@
 					{#snippet child({ props })}
 						<a href="##" {...props}>
 							<InnerShadowTopIcon class="!size-5" />
-							<span class="text-base font-semibold">Slatebase</span>
+							<span class="text-base font-semibold">{APP_NAME}</span>
 						</a>
 					{/snippet}
 				</Sidebar.MenuButton>

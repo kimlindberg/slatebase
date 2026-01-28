@@ -3,6 +3,7 @@
 	import * as Card from "$lib/components/ui/card/index.js";
 	import AppSidebar from "$lib/components/admin/app-sidebar.svelte";
 	import SiteHeader from "$lib/components/admin/site-header.svelte";
+	import { APP_NAME } from "$lib/constants";
 
 	let { data } = $props();
 </script>
@@ -19,7 +20,7 @@
 					<div class="px-4 lg:px-6">
 						<Card.Root>
 							<Card.Header>
-								<Card.Title>Welcome to slatebase</Card.Title>
+								<Card.Title>Welcome to {APP_NAME}</Card.Title>
 								<Card.Description>
 									This is your dashboard start page.
 								</Card.Description>
