@@ -37,6 +37,12 @@ Build a platform for service professionals (initially PTs) with:
 ## Notes / gotchas
 - Svelte 5 uses `onclick={...}` rather than `on:click` on components
 - Keep business logic out of routes: put in `src/lib/server/domain/*`
+- For dashboard forms, keep UX consistent:
+  - Disable submit until required fields are filled and valid.
+  - Show a spinner inside the button while submitting.
+  - Show a success message to the right of the button (no layout shift), then fade it out after ~2s.
+  - For enhanced forms, prefer `use:enhance={handler}` with `update({ reset: false })` to avoid clearing inputs.
+  - Use Tabler icons (e.g. `loader-2`) for spinners.
 
 ## Routing rules (IMPORTANT – SvelteKit specifics)
 
