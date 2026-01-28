@@ -1,8 +1,13 @@
 import type { Actions, PageServerLoad } from "./$types";
 import { fail } from "@sveltejs/kit";
 import { supabaseServer } from "$lib/server/supabase/server";
+import {
+	getIcloudIntegrationUsername,
+	mockFetchIcloudCalendars,
+	upsertIcloudIntegration,
+} from "$lib/server/domain/integrations";
 
-export const load: PageServerLoad = async ({ cookies, fetch }) => {
+export const load: PageServerLoad = async ({ cookies }) => {
 	const supabase = supabaseServer(cookies);
 	const { data } = await supabase.auth.getUser();
 	const user = data.user ?? null;
@@ -10,13 +15,7 @@ export const load: PageServerLoad = async ({ cookies, fetch }) => {
 	let icloudUsername = "";
 	if (user) {
 		try {
-			const response = await fetch("/api/integrations/icloud", {
-				headers: { accept: "application/json" },
-			});
-			if (response.ok) {
-				const result = await response.json();
-				icloudUsername = result.username ?? "";
-			}
+			icloudUsername = await getIcloudIntegrationUsername(supabase, user.id);
 		} catch {
 			icloudUsername = "";
 		}
@@ -26,7 +25,7 @@ export const load: PageServerLoad = async ({ cookies, fetch }) => {
 };
 
 export const actions: Actions = {
-	fetch: async ({ request, cookies, fetch }) => {
+	fetch: async ({ request, cookies }) => {
 		const formData = await request.formData();
 		const username = (formData.get("username") ?? "").toString().trim();
 		const appPassword = (formData.get("appPassword") ?? "").toString().trim();
@@ -42,16 +41,13 @@ export const actions: Actions = {
 		}
 
 		try {
-			const response = await fetch("/api/integrations/icloud", {
-				method: "POST",
-				body: formData,
-				headers: { accept: "application/json" },
+			await upsertIcloudIntegration(supabase, {
+				userId: data.user.id,
+				username,
+				appPassword,
 			});
-			const result = await response.json();
-			if (!response.ok) {
-				return fail(response.status, { error: result?.error ?? "Unable to save integration." });
-			}
-			return { calendars: result.calendars ?? [] };
+			const calendars = await mockFetchIcloudCalendars();
+			return { calendars };
 		} catch (err) {
 			return fail(500, { error: err instanceof Error ? err.message : "Unable to save integration." });
 		}
