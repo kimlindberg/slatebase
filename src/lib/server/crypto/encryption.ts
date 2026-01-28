@@ -1,4 +1,4 @@
-import { createCipheriv, createHash, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { ICLOUD_CREDENTIALS_SECRET } from "$env/static/private";
 
 type EncryptedPayload = {
@@ -30,4 +30,23 @@ export const encryptJson = (payload: Record<string, unknown>): EncryptedPayload 
 		tag: tag.toString("base64"),
 		ciphertext: ciphertext.toString("base64"),
 	};
+};
+
+export const decryptJson = <T extends Record<string, unknown>>(
+	payload: EncryptedPayload
+): T => {
+	if (payload.alg !== "aes-256-gcm") {
+		throw new Error(`Unsupported encryption algorithm: ${payload.alg}`);
+	}
+
+	const key = getKey();
+	const iv = Buffer.from(payload.iv, "base64");
+	const tag = Buffer.from(payload.tag, "base64");
+	const ciphertext = Buffer.from(payload.ciphertext, "base64");
+
+	const decipher = createDecipheriv("aes-256-gcm", key, iv);
+	decipher.setAuthTag(tag);
+
+	const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+	return JSON.parse(plaintext.toString("utf8")) as T;
 };
