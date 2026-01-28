@@ -8,9 +8,18 @@
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 
-	let { user }: { user: { name: string; email: string; avatar: string } } = $props();
+	let { user }: { user: { name: string; email: string; avatar?: string } } = $props();
+
+	const initials =
+		user.name
+			.split(" ")
+			.map((part) => part[0])
+			.join("")
+			.slice(0, 2)
+			.toUpperCase() || "SB";
 
 	const sidebar = Sidebar.useSidebar();
+	let logoutForm: HTMLFormElement | null = $state(null);
 </script>
 
 <Sidebar.Menu>
@@ -24,8 +33,10 @@
 						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 					>
 						<Avatar.Root class="size-8 rounded-lg grayscale">
-							<Avatar.Image src={user.avatar} alt={user.name} />
-							<Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+							{#if user.avatar}
+								<Avatar.Image src={user.avatar} alt={user.name} />
+							{/if}
+							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-start text-sm leading-tight">
 							<span class="truncate font-medium">{user.name}</span>
@@ -46,8 +57,10 @@
 				<DropdownMenu.Label class="p-0 font-normal">
 					<div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
 						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Image src={user.avatar} alt={user.name} />
-							<Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+							{#if user.avatar}
+								<Avatar.Image src={user.avatar} alt={user.name} />
+							{/if}
+							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-start text-sm leading-tight">
 							<span class="truncate font-medium">{user.name}</span>
@@ -60,8 +73,12 @@
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
 					<DropdownMenu.Item>
-						<UserCircleIcon />
-						Account
+						{#snippet child({ props })}
+							<a href="/app/account" {...props}>
+								<UserCircleIcon />
+								Account
+							</a>
+						{/snippet}
 					</DropdownMenu.Item>
 					<DropdownMenu.Item>
 						<CreditCardIcon />
@@ -73,7 +90,10 @@
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item>
+				<form method="post" action="/logout" class="w-full" bind:this={logoutForm}>
+					<button type="submit" class="sr-only">Log out</button>
+				</form>
+				<DropdownMenu.Item onclick={() => logoutForm?.requestSubmit()}>
 					<LogoutIcon />
 					Log out
 				</DropdownMenu.Item>

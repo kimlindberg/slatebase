@@ -20,13 +20,9 @@
 	import NavUser from "./nav-user.svelte";
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 	import type { ComponentProps } from "svelte";
+	import type { User } from "@supabase/supabase-js";
 
 	const data = {
-		user: {
-			name: "shadcn",
-			email: "m@example.com",
-			avatar: "/avatars/shadcn.jpg",
-		},
 		navMain: [
 			{
 				title: "Dashboard",
@@ -138,7 +134,20 @@
 		],
 	};
 
-	let { ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
+	let {
+		user = null,
+		...restProps
+	}: ComponentProps<typeof Sidebar.Root> & {
+		user?: User | null;
+	} = $props();
+
+	const displayName =
+		(user?.user_metadata?.display_name as string | undefined) ??
+		(user?.user_metadata?.full_name as string | undefined) ??
+		(user?.user_metadata?.name as string | undefined) ??
+		user?.email?.split("@")[0] ??
+		"User";
+	const email = user?.email ?? "";
 </script>
 
 <Sidebar.Root collapsible="offcanvas" {...restProps}>
@@ -149,7 +158,7 @@
 					{#snippet child({ props })}
 						<a href="##" {...props}>
 							<InnerShadowTopIcon class="!size-5" />
-							<span class="text-base font-semibold">Acme Inc.</span>
+							<span class="text-base font-semibold">Slatebase</span>
 						</a>
 					{/snippet}
 				</Sidebar.MenuButton>
@@ -162,6 +171,6 @@
 		<NavSecondary items={data.navSecondary} class="mt-auto" />
 	</Sidebar.Content>
 	<Sidebar.Footer>
-		<NavUser user={data.user} />
+		<NavUser user={{ name: displayName, email }} />
 	</Sidebar.Footer>
 </Sidebar.Root>
