@@ -22,6 +22,7 @@
 	import type { ComponentProps } from "svelte";
 	import type { User } from "@supabase/supabase-js";
 	import { APP_NAME } from "$lib/constants";
+	import CalendarIcon from "@tabler/icons-svelte/icons/calendar";
 
 	const data = {
 		navMain: [
@@ -29,6 +30,11 @@
 				title: "Dashboard",
 				url: "/app",
 				icon: DashboardIcon,
+			},
+			{
+				title: "Scheduler",
+				url: "/app/scheduler",
+				icon: CalendarIcon,
 			},
 			{
 				title: "Lifecycle",
