@@ -148,13 +148,14 @@
 		user?: User | null;
 	} = $props();
 
-	const displayName =
+	const displayName = $derived.by(() =>
 		(user?.user_metadata?.display_name as string | undefined) ??
 		(user?.user_metadata?.full_name as string | undefined) ??
 		(user?.user_metadata?.name as string | undefined) ??
 		user?.email?.split("@")[0] ??
-		"User";
-	const email = user?.email ?? "";
+		"User"
+	);
+	const email = $derived.by(() => user?.email ?? "");
 </script>
 
 <Sidebar.Root collapsible="offcanvas" {...restProps}>

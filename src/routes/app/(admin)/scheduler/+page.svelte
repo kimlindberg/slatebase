@@ -21,15 +21,15 @@
 
 	let { data } = $props();
 
-	let username = $state(data.icloudUsername ?? "");
-	let connected = $state((data.icloudUsername ?? "").trim().length > 0);
+	let username = $state("");
+	let connected = $state(false);
 	let appPassword = $state("");
 	let isSubmitting = $state(false);
 	let success = $state(false);
 	let error = $state<string | null>(null);
 	let successTimer: ReturnType<typeof setTimeout> | null = null;
-	let calendars = $state<{ id: string; title: string }[]>(data.calendars ?? []);
-	let selectedCalendarIds = $state<string[]>(data.selectedCalendarIds ?? []);
+	let calendars = $state<{ id: string; title: string }[]>([]);
+	let selectedCalendarIds = $state<string[]>([]);
 	let isOpen = $state(false);
 	let selectionSubmitting = $state(false);
 	let selectionSuccess = $state(false);
@@ -39,6 +39,16 @@
 	let deleteSuccess = $state(false);
 	let deleteError = $state<string | null>(null);
 	let deleteTimer: ReturnType<typeof setTimeout> | null = null;
+	let initialized = $state(false);
+
+	$effect(() => {
+		if (initialized) return;
+		username = data.icloudUsername ?? "";
+		calendars = data.calendars ?? [];
+		selectedCalendarIds = data.selectedCalendarIds ?? [];
+		connected = (data.icloudUsername ?? "").trim().length > 0;
+		initialized = true;
+	});
 
 	const canSubmit = $derived(
 		username.trim().length > 0 && appPassword.trim().length > 0 && !isSubmitting

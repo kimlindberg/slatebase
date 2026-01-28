@@ -10,13 +10,14 @@
 
 	let { user }: { user: { name: string; email: string; avatar?: string } } = $props();
 
-	const initials =
+	const initials = $derived.by(() =>
 		user.name
 			.split(" ")
 			.map((part) => part[0])
 			.join("")
 			.slice(0, 2)
-			.toUpperCase() || "SB";
+			.toUpperCase() || "SB"
+	);
 
 	const sidebar = Sidebar.useSidebar();
 	let logoutForm: HTMLFormElement | null = $state(null);
