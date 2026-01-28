@@ -12,6 +12,7 @@ Build a platform for service professionals (initially PTs) with:
 - Supabase for auth + Postgres
 - Supabase SSR setup using @supabase/ssr
 - Always use shadcn components when available to keep the admin UI consistent
+- Always use tabler.io icons when applicable
 
 ## Current repo conventions
 ### Route groups (SvelteKit)
