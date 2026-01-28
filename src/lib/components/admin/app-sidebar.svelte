@@ -8,7 +8,7 @@
 	import FileWordIcon from "@tabler/icons-svelte/icons/file-word";
 	import FolderIcon from "@tabler/icons-svelte/icons/folder";
 	import HelpIcon from "@tabler/icons-svelte/icons/help";
-	import InnerShadowTopIcon from "@tabler/icons-svelte/icons/inner-shadow-top";
+	import SteamIcon from "@tabler/icons-svelte/icons/steam";
 	import ListDetailsIcon from "@tabler/icons-svelte/icons/list-details";
 	import ReportIcon from "@tabler/icons-svelte/icons/report";
 	import SearchIcon from "@tabler/icons-svelte/icons/search";
@@ -158,7 +158,7 @@
 				<Sidebar.MenuButton class="data-[slot=sidebar-menu-button]:!p-1.5">
 					{#snippet child({ props })}
 						<a href="##" {...props}>
-							<InnerShadowTopIcon class="!size-5" />
+							<SteamIcon class="!size-5 text-orange-500" />
 							<span class="text-base font-semibold">{APP_NAME}</span>
 						</a>
 					{/snippet}
