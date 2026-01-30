@@ -1,20 +1,29 @@
 <script lang="ts">
-	import * as Card from "$lib/components/ui/card/index.js";
-	import { Input } from "$lib/components/ui/input/index.js";
-	import { Label } from "$lib/components/ui/label/index.js";
-	import { Button } from "$lib/components/ui/button/index.js";
-	import { enhance } from "$app/forms";
-	import Loader2Icon from "@tabler/icons-svelte/icons/loader-2";
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import AppSidebar from "$lib/components/admin/app-sidebar.svelte";
-	import SiteHeader from "$lib/components/admin/site-header.svelte";
+	import * as Card from '$lib/components/ui/card/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { enhance } from '$app/forms';
+	import type { SubmitFunction } from '@sveltejs/kit';
+	import Loader2Icon from '@tabler/icons-svelte/icons/loader-2';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import AppSidebar from '$lib/components/admin/app-sidebar.svelte';
+	import SiteHeader from '$lib/components/admin/site-header.svelte';
 
 	let { data } = $props();
 
-	let displayName = $state(data.profile?.displayName ?? "");
-	let phone = $state(data.profile?.phone ?? "");
-	let password = $state("");
-	let confirmPassword = $state("");
+	let displayName = $state('');
+	let phone = $state('');
+	let password = $state('');
+	let confirmPassword = $state('');
+	let initialized = $state(false);
+
+	$effect(() => {
+		if (initialized) return;
+		displayName = data.profile?.displayName ?? '';
+		phone = data.profile?.phone ?? '';
+		initialized = true;
+	});
 
 	let profileSubmitting = $state(false);
 	let passwordSubmitting = $state(false);
@@ -41,7 +50,7 @@
 		passwordTimer = null;
 	};
 
-	const handleProfile = () => {
+	const handleProfile: SubmitFunction = () => {
 		profileSubmitting = true;
 		profileError = null;
 		profileSuccess = false;
@@ -50,11 +59,11 @@
 		return async ({ result, update }) => {
 			await update({ reset: false });
 			profileSubmitting = false;
-			if (result.type === "failure") {
-				profileError = result.data?.profileError ?? "Unable to update profile.";
+			if (result.type === 'failure') {
+				profileError = result.data?.profileError ?? 'Unable to update profile.';
 				return;
 			}
-			if (result.type === "success") {
+			if (result.type === 'success') {
 				profileSuccess = true;
 				profileTimer = setTimeout(() => {
 					profileSuccess = false;
@@ -64,7 +73,7 @@
 		};
 	};
 
-	const handlePassword = () => {
+	const handlePassword: SubmitFunction = () => {
 		passwordSubmitting = true;
 		passwordError = null;
 		passwordSuccess = false;
@@ -73,14 +82,14 @@
 		return async ({ result, update }) => {
 			await update({ reset: false });
 			passwordSubmitting = false;
-			if (result.type === "failure") {
-				passwordError = result.data?.passwordError ?? "Unable to update password.";
+			if (result.type === 'failure') {
+				passwordError = result.data?.passwordError ?? 'Unable to update password.';
 				return;
 			}
-			if (result.type === "success") {
+			if (result.type === 'success') {
 				passwordSuccess = true;
-				password = "";
-				confirmPassword = "";
+				password = '';
+				confirmPassword = '';
 				passwordTimer = setTimeout(() => {
 					passwordSuccess = false;
 					passwordTimer = null;
@@ -114,7 +123,7 @@
 								>
 									<div class="space-y-2">
 										<Label for="email">Email</Label>
-										<Input id="email" value={data.profile?.email ?? ""} disabled />
+										<Input id="email" value={data.profile?.email ?? ''} disabled />
 									</div>
 									<div class="space-y-2">
 										<Label for="displayName">Display name</Label>
@@ -128,12 +137,7 @@
 									</div>
 									<div class="space-y-2">
 										<Label for="phone">Phone</Label>
-										<Input
-											id="phone"
-											name="phone"
-											bind:value={phone}
-											autocomplete="tel"
-										/>
+										<Input id="phone" name="phone" bind:value={phone} autocomplete="tel" />
 									</div>
 									{#if profileError}
 										<p class="text-sm text-destructive">{profileError}</p>
@@ -155,9 +159,7 @@
 										</p>
 									</div>
 									{#if !canSaveProfile && !profileSubmitting}
-										<p class="text-xs text-muted-foreground">
-											Display name is required to save.
-										</p>
+										<p class="text-xs text-muted-foreground">Display name is required to save.</p>
 									{/if}
 								</form>
 							</Card.Content>

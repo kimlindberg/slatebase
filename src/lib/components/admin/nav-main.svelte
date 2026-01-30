@@ -1,7 +1,7 @@
 <script lang="ts">
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import type { Icon } from "@tabler/icons-svelte";
-	import { page } from "$app/stores";
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import type { Icon } from '@tabler/icons-svelte';
+	import { page } from '$app/stores';
 
 	let { items }: { items: { title: string; url: string; icon?: Icon }[] } = $props();
 </script>

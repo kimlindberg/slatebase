@@ -1,29 +1,30 @@
 <script lang="ts">
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import * as Card from "$lib/components/ui/card/index.js";
-	import { Input } from "$lib/components/ui/input/index.js";
-	import { Label } from "$lib/components/ui/label/index.js";
-	import { Button } from "$lib/components/ui/button/index.js";
-	import * as Popover from "$lib/components/ui/popover/index.js";
-	import * as Command from "$lib/components/ui/command/index.js";
-	import { cn } from "$lib/utils.js";
-	import Loader2Icon from "@tabler/icons-svelte/icons/loader-2";
-	import ArrowsUpDownIcon from "@tabler/icons-svelte/icons/arrows-up-down";
-	import CheckIcon from "@tabler/icons-svelte/icons/check";
-	import CloudIcon from "@tabler/icons-svelte/icons/cloud";
-	import CalendarIcon from "@tabler/icons-svelte/icons/calendar";
-	import KeyIcon from "@tabler/icons-svelte/icons/key";
-	import { Badge } from "$lib/components/ui/badge/index.js";
-	import { Separator } from "$lib/components/ui/separator/index.js";
-	import AppSidebar from "$lib/components/admin/app-sidebar.svelte";
-	import SiteHeader from "$lib/components/admin/site-header.svelte";
-	import { enhance } from "$app/forms";
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import * as Card from '$lib/components/ui/card/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import * as Popover from '$lib/components/ui/popover/index.js';
+	import * as Command from '$lib/components/ui/command/index.js';
+	import { cn } from '$lib/utils.js';
+	import Loader2Icon from '@tabler/icons-svelte/icons/loader-2';
+	import ArrowsUpDownIcon from '@tabler/icons-svelte/icons/arrows-up-down';
+	import CheckIcon from '@tabler/icons-svelte/icons/check';
+	import CloudIcon from '@tabler/icons-svelte/icons/cloud';
+	import CalendarIcon from '@tabler/icons-svelte/icons/calendar';
+	import KeyIcon from '@tabler/icons-svelte/icons/key';
+	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { Separator } from '$lib/components/ui/separator/index.js';
+	import AppSidebar from '$lib/components/admin/app-sidebar.svelte';
+	import SiteHeader from '$lib/components/admin/site-header.svelte';
+	import { enhance } from '$app/forms';
+	import type { SubmitFunction } from '@sveltejs/kit';
 
 	let { data } = $props();
 
-	let username = $state("");
+	let username = $state('');
 	let connected = $state(false);
-	let appPassword = $state("");
+	let appPassword = $state('');
 	let isSubmitting = $state(false);
 	let success = $state(false);
 	let error = $state<string | null>(null);
@@ -40,9 +41,9 @@
 	let deleteError = $state<string | null>(null);
 	let deleteTimer: ReturnType<typeof setTimeout> | null = null;
 	let initialized = $state(false);
-	let workdayStart = $state("09:00");
-	let workdayEnd = $state("17:00");
-	let whatsappMessage = $state("");
+	let workdayStart = $state('09:00');
+	let workdayEnd = $state('17:00');
+	let whatsappMessage = $state('');
 	let settingsSubmitting = $state(false);
 	let settingsSuccess = $state(false);
 	let settingsError = $state<string | null>(null);
@@ -50,13 +51,13 @@
 
 	$effect(() => {
 		if (initialized) return;
-		username = data.icloudUsername ?? "";
+		username = data.icloudUsername ?? '';
 		calendars = data.calendars ?? [];
 		selectedCalendarIds = data.selectedCalendarIds ?? [];
-		connected = (data.icloudUsername ?? "").trim().length > 0;
-		workdayStart = data.schedulerSettings?.workdayStart ?? "09:00";
-		workdayEnd = data.schedulerSettings?.workdayEnd ?? "17:00";
-		whatsappMessage = data.schedulerSettings?.whatsappMessage ?? "";
+		connected = (data.icloudUsername ?? '').trim().length > 0;
+		workdayStart = data.schedulerSettings?.workdayStart ?? '09:00';
+		workdayEnd = data.schedulerSettings?.workdayEnd ?? '17:00';
+		whatsappMessage = data.schedulerSettings?.whatsappMessage ?? '';
 		initialized = true;
 	});
 
@@ -67,12 +68,12 @@
 		calendars.filter((calendar) => selectedCalendarIds.includes(calendar.id))
 	);
 	const selectionLabel = $derived.by(() => {
-		if (!selectedTitles.length) return "Select calendars";
-		if (selectedTitles.length <= 2) return selectedTitles.map((c) => c.title).join(", ");
+		if (!selectedTitles.length) return 'Select calendars';
+		if (selectedTitles.length <= 2) return selectedTitles.map((c) => c.title).join(', ');
 		return `${selectedTitles
 			.slice(0, 2)
 			.map((c) => c.title)
-			.join(", ")} +${selectedTitles.length - 2}`;
+			.join(', ')} +${selectedTitles.length - 2}`;
 	});
 	const canSaveSelection = $derived(selectedCalendarIds.length > 0 && !selectionSubmitting);
 	const isConnected = $derived(connected);
@@ -85,7 +86,7 @@
 		successTimer = null;
 	};
 
-	const handleFetchEnhance = () => {
+	const handleFetchEnhance: SubmitFunction = () => {
 		isSubmitting = true;
 		error = null;
 		success = false;
@@ -94,11 +95,11 @@
 		return async ({ result, update }) => {
 			isSubmitting = false;
 			await update({ reset: false });
-			if (result.type === "failure") {
-				error = result.data?.error ?? "Unable to fetch calendars.";
+			if (result.type === 'failure') {
+				error = result.data?.error ?? 'Unable to fetch calendars.';
 				return;
 			}
-			if (result.type === "success") {
+			if (result.type === 'success') {
 				calendars = result.data?.calendars ?? [];
 				selectedCalendarIds = [];
 				connected = true;
@@ -111,7 +112,7 @@
 		};
 	};
 
-	const handleSelectionEnhance = () => {
+	const handleSelectionEnhance: SubmitFunction = () => {
 		selectionSubmitting = true;
 		selectionError = null;
 		selectionSuccess = false;
@@ -123,11 +124,11 @@
 		return async ({ result, update }) => {
 			selectionSubmitting = false;
 			await update({ reset: false });
-			if (result.type === "failure") {
-				selectionError = result.data?.selectionError ?? "Unable to save selection.";
+			if (result.type === 'failure') {
+				selectionError = result.data?.selectionError ?? 'Unable to save selection.';
 				return;
 			}
-			if (result.type === "success") {
+			if (result.type === 'success') {
 				selectionSuccess = true;
 				selectionTimer = setTimeout(() => {
 					selectionSuccess = false;
@@ -137,7 +138,7 @@
 		};
 	};
 
-	const handleDeleteEnhance = () => {
+	const handleDeleteEnhance: SubmitFunction = () => {
 		deleteSubmitting = true;
 		deleteError = null;
 		deleteSuccess = false;
@@ -149,14 +150,14 @@
 		return async ({ result, update }) => {
 			deleteSubmitting = false;
 			await update({ reset: false });
-			if (result.type === "failure") {
-				deleteError = result.data?.deleteError ?? "Unable to delete integration.";
+			if (result.type === 'failure') {
+				deleteError = result.data?.deleteError ?? 'Unable to delete integration.';
 				return;
 			}
-			if (result.type === "success") {
+			if (result.type === 'success') {
 				deleteSuccess = true;
-				username = "";
-				appPassword = "";
+				username = '';
+				appPassword = '';
 				calendars = [];
 				selectedCalendarIds = [];
 				connected = false;
@@ -168,7 +169,7 @@
 		};
 	};
 
-	const handleSettingsEnhance = () => {
+	const handleSettingsEnhance: SubmitFunction = () => {
 		settingsSubmitting = true;
 		settingsError = null;
 		settingsSuccess = false;
@@ -180,11 +181,11 @@
 		return async ({ result, update }) => {
 			settingsSubmitting = false;
 			await update({ reset: false });
-			if (result.type === "failure") {
-				settingsError = result.data?.settingsError ?? "Unable to save settings.";
+			if (result.type === 'failure') {
+				settingsError = result.data?.settingsError ?? 'Unable to save settings.';
 				return;
 			}
-			if (result.type === "success") {
+			if (result.type === 'success') {
 				settingsSuccess = true;
 				settingsTimer = setTimeout(() => {
 					settingsSuccess = false;
@@ -278,12 +279,10 @@
 												{:else}
 													Connecting…
 												{/if}
+											{:else if isConnected}
+												Refresh calendars
 											{:else}
-												{#if isConnected}
-													Refresh calendars
-												{:else}
-													Connect & fetch
-												{/if}
+												Connect & fetch
 											{/if}
 										</Button>
 										{#if isConnected}
@@ -338,7 +337,7 @@
 									<div class="space-y-2">
 										<Label for="icloud-calendars">Calendars to sync</Label>
 										<Popover.Root bind:open={isOpen}>
-											<Popover.Trigger asChild>
+											<Popover.Trigger>
 												{#snippet child({ props })}
 													<Button
 														{...props}
@@ -366,10 +365,10 @@
 																>
 																	<CheckIcon
 																		class={cn(
-																			"size-4",
+																			'size-4',
 																			selectedCalendarIds.includes(calendar.id)
-																				? "opacity-100"
-																				: "opacity-0"
+																				? 'opacity-100'
+																				: 'opacity-0'
 																		)}
 																	/>
 																	{calendar.title}
@@ -477,7 +476,7 @@
 											name="whatsappMessage"
 											bind:value={whatsappMessage}
 											rows="4"
-											class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 dark:bg-input/30 dark:border-input flex min-h-[100px] w-full rounded-md border px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+											class="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs ring-offset-background outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:ring-destructive/20 dark:border-input dark:bg-input/30 dark:aria-invalid:ring-destructive/40"
 											placeholder="Hi! I would like to book a session..."
 										></textarea>
 									</div>
