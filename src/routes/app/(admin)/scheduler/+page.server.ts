@@ -1,11 +1,23 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 import { supabaseServer } from '$lib/server/supabase/server';
+import {
+	generateProviderSlug,
+	getProviderProfile,
+	normalizeProviderSlug,
+	upsertProviderProfile
+} from '$lib/server/domain/providers';
 
-export const load: PageServerLoad = async ({ cookies, fetch }) => {
+export const load: PageServerLoad = async ({ cookies, fetch, url }) => {
 	const supabase = supabaseServer(cookies);
 	const { data } = await supabase.auth.getUser();
 	const user = data.user ?? null;
+	const displayName = user
+		? ((user.user_metadata?.display_name as string | undefined) ??
+			(user.user_metadata?.full_name as string | undefined) ??
+			(user.user_metadata?.name as string | undefined) ??
+			'')
+		: '';
 
 	let icloudUsername = '';
 	let selectedCalendarIds: string[] = [];
@@ -15,6 +27,11 @@ export const load: PageServerLoad = async ({ cookies, fetch }) => {
 		workdayEnd: '17:00',
 		whatsappMessage: ''
 	};
+	let providerProfile = {
+		publicSlug: '',
+		isPublic: false
+	};
+	let providerSlugSuggestion = '';
 	if (user) {
 		try {
 			const response = await fetch('/api/integrations/icloud', {
@@ -38,12 +55,28 @@ export const load: PageServerLoad = async ({ cookies, fetch }) => {
 			if (settingsResponse.ok) {
 				schedulerSettings = await settingsResponse.json();
 			}
+
+			const profile = await getProviderProfile(supabase, user.id);
+			providerSlugSuggestion = generateProviderSlug(displayName, user.id);
+			providerProfile = {
+				publicSlug: profile?.publicSlug ?? providerSlugSuggestion,
+				isPublic: profile?.isPublic ?? false
+			};
 		} catch {
 			icloudUsername = '';
 		}
 	}
 
-	return { user, icloudUsername, calendars, selectedCalendarIds, schedulerSettings };
+	return {
+		user,
+		icloudUsername,
+		calendars,
+		selectedCalendarIds,
+		schedulerSettings,
+		providerProfile,
+		providerSlugSuggestion,
+		publicBaseUrl: url.origin
+	};
 };
 
 export const actions: Actions = {
@@ -136,6 +169,38 @@ export const actions: Actions = {
 			});
 		}
 	},
+	publicPage: async ({ request, cookies }) => {
+		const formData = await request.formData();
+		const publicSlugRaw = (formData.get('publicSlug') ?? '').toString();
+		const isPublic = formData.get('isPublic') === 'on';
+
+		const normalizedSlug = normalizeProviderSlug(publicSlugRaw);
+		if (!normalizedSlug) {
+			return fail(400, { publicError: 'Public page slug is required.' });
+		}
+
+		const supabase = supabaseServer(cookies);
+		const { data } = await supabase.auth.getUser();
+		if (!data.user) {
+			return fail(401, { publicError: 'Not authenticated.' });
+		}
+
+		try {
+			await upsertProviderProfile(supabase, data.user.id, {
+				publicSlug: normalizedSlug,
+				isPublic
+			});
+			return { publicSuccess: true };
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Unable to save public page.';
+			if (message.includes('providers_public_slug_uq') || message.includes('duplicate')) {
+				return fail(409, { publicError: 'That slug is already taken.' });
+			}
+			return fail(500, {
+				publicError: message
+			});
+		}
+	},
 	settings: async ({ request, cookies, fetch }) => {
 		const formData = await request.formData();
 		const workdayStart = (formData.get('workdayStart') ?? '').toString();
@@ -165,8 +230,12 @@ export const actions: Actions = {
 			}
 			return { settingsSuccess: true };
 		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Unable to save settings.';
+			if (message.includes('providers_public_slug_uq') || message.includes('duplicate')) {
+				return fail(409, { settingsError: 'That slug is already taken.' });
+			}
 			return fail(500, {
-				settingsError: err instanceof Error ? err.message : 'Unable to save settings.'
+				settingsError: message
 			});
 		}
 	}

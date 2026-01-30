@@ -13,8 +13,10 @@
 	import CloudIcon from '@tabler/icons-svelte/icons/cloud';
 	import CalendarIcon from '@tabler/icons-svelte/icons/calendar';
 	import KeyIcon from '@tabler/icons-svelte/icons/key';
+	import ExternalLinkIcon from '@tabler/icons-svelte/icons/external-link';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import AppSidebar from '$lib/components/admin/app-sidebar.svelte';
 	import SiteHeader from '$lib/components/admin/site-header.svelte';
 	import { enhance } from '$app/forms';
@@ -48,6 +50,13 @@
 	let settingsSuccess = $state(false);
 	let settingsError = $state<string | null>(null);
 	let settingsTimer: ReturnType<typeof setTimeout> | null = null;
+	let publicSlug = $state('');
+	let isPublic = $state(false);
+	let publicBaseUrl = $state('');
+	let publicSubmitting = $state(false);
+	let publicSuccess = $state(false);
+	let publicError = $state<string | null>(null);
+	let publicTimer: ReturnType<typeof setTimeout> | null = null;
 
 	$effect(() => {
 		if (initialized) return;
@@ -58,6 +67,9 @@
 		workdayStart = data.schedulerSettings?.workdayStart ?? '09:00';
 		workdayEnd = data.schedulerSettings?.workdayEnd ?? '17:00';
 		whatsappMessage = data.schedulerSettings?.whatsappMessage ?? '';
+		publicSlug = data.providerProfile?.publicSlug ?? data.providerSlugSuggestion ?? '';
+		isPublic = data.providerProfile?.isPublic ?? false;
+		publicBaseUrl = data.publicBaseUrl ?? '';
 		initialized = true;
 	});
 
@@ -77,8 +89,20 @@
 	});
 	const canSaveSelection = $derived(selectedCalendarIds.length > 0 && !selectionSubmitting);
 	const isConnected = $derived(connected);
+	const canSavePublic = $derived(publicSlug.trim().length > 0 && !publicSubmitting);
 	const canSaveSettings = $derived(
 		workdayStart.trim().length > 0 && workdayEnd.trim().length > 0 && !settingsSubmitting
+	);
+	const normalizedSlug = $derived(
+		publicSlug
+			.toLowerCase()
+			.trim()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '')
+			.replace(/--+/g, '-')
+	);
+	const publicPageUrl = $derived(
+		normalizedSlug && publicBaseUrl ? `${publicBaseUrl}/c/${normalizedSlug}` : ''
 	);
 
 	const clearTimer = () => {
@@ -94,9 +118,10 @@
 
 		return async ({ result, update }) => {
 			isSubmitting = false;
-			await update({ reset: false });
+			const updatePromise = update({ reset: false });
 			if (result.type === 'failure') {
 				error = result.data?.error ?? 'Unable to fetch calendars.';
+				await updatePromise;
 				return;
 			}
 			if (result.type === 'success') {
@@ -109,6 +134,7 @@
 					successTimer = null;
 				}, 2000);
 			}
+			await updatePromise;
 		};
 	};
 
@@ -123,9 +149,10 @@
 
 		return async ({ result, update }) => {
 			selectionSubmitting = false;
-			await update({ reset: false });
+			const updatePromise = update({ reset: false });
 			if (result.type === 'failure') {
 				selectionError = result.data?.selectionError ?? 'Unable to save selection.';
+				await updatePromise;
 				return;
 			}
 			if (result.type === 'success') {
@@ -135,6 +162,7 @@
 					selectionTimer = null;
 				}, 2000);
 			}
+			await updatePromise;
 		};
 	};
 
@@ -149,9 +177,10 @@
 
 		return async ({ result, update }) => {
 			deleteSubmitting = false;
-			await update({ reset: false });
+			const updatePromise = update({ reset: false });
 			if (result.type === 'failure') {
 				deleteError = result.data?.deleteError ?? 'Unable to delete integration.';
+				await updatePromise;
 				return;
 			}
 			if (result.type === 'success') {
@@ -166,6 +195,7 @@
 					deleteTimer = null;
 				}, 2000);
 			}
+			await updatePromise;
 		};
 	};
 
@@ -180,9 +210,10 @@
 
 		return async ({ result, update }) => {
 			settingsSubmitting = false;
-			await update({ reset: false });
+			const updatePromise = update({ reset: false });
 			if (result.type === 'failure') {
 				settingsError = result.data?.settingsError ?? 'Unable to save settings.';
+				await updatePromise;
 				return;
 			}
 			if (result.type === 'success') {
@@ -192,6 +223,34 @@
 					settingsTimer = null;
 				}, 2000);
 			}
+			await updatePromise;
+		};
+	};
+	const handlePublicEnhance: SubmitFunction = () => {
+		publicSubmitting = true;
+		publicError = null;
+		publicSuccess = false;
+		if (publicTimer) {
+			clearTimeout(publicTimer);
+			publicTimer = null;
+		}
+
+		return async ({ result, update }) => {
+			publicSubmitting = false;
+			const updatePromise = update({ reset: false });
+			if (result.type === 'failure') {
+				publicError = result.data?.publicError ?? 'Unable to save public page.';
+				await updatePromise;
+				return;
+			}
+			if (result.type === 'success') {
+				publicSuccess = true;
+				publicTimer = setTimeout(() => {
+					publicSuccess = false;
+					publicTimer = null;
+				}, 2000);
+			}
+			await updatePromise;
 		};
 	};
 
@@ -270,7 +329,7 @@
 											required
 										/>
 									</div>
-									<div class="flex items-center gap-3 md:justify-end">
+									<div class="flex min-h-[1.25rem] items-center gap-3 md:justify-end">
 										<Button type="submit" disabled={!canSubmit}>
 											{#if isSubmitting}
 												<Loader2Icon class="size-4 animate-spin" />
@@ -302,6 +361,7 @@
 										<p
 											class="text-sm text-muted-foreground transition-opacity duration-500"
 											class:opacity-0={!success}
+											aria-live="polite"
 										>
 											Calendars fetched.
 										</p>
@@ -317,11 +377,13 @@
 									{#if deleteError}
 										<p class="text-sm text-destructive md:col-span-full">{deleteError}</p>
 									{/if}
-									{#if deleteSuccess}
-										<p class="text-sm text-muted-foreground md:col-span-full">
-											Integration removed.
-										</p>
-									{/if}
+									<p
+										class="text-sm text-muted-foreground transition-opacity duration-500 md:col-span-full"
+										class:opacity-0={!deleteSuccess}
+										aria-live="polite"
+									>
+										Integration removed.
+									</p>
 								</form>
 								<form
 									id="icloud-delete-form"
@@ -397,7 +459,7 @@
 									<form
 										method="post"
 										action="?/selection"
-										class="flex items-center gap-3"
+										class="flex min-h-[1.25rem] items-center gap-3"
 										use:enhance={handleSelectionEnhance}
 									>
 										<input
@@ -416,6 +478,7 @@
 										<p
 											class="text-sm text-muted-foreground transition-opacity duration-500"
 											class:opacity-0={!selectionSuccess}
+											aria-live="polite"
 										>
 											Selection saved.
 										</p>
@@ -429,6 +492,95 @@
 										</p>
 									{/if}
 								{/if}
+							</Card.Content>
+						</Card.Root>
+					</div>
+					<div class="px-4 lg:px-6">
+						<Card.Root>
+							<Card.Header>
+								<Card.Title>Public booking page</Card.Title>
+								<Card.Description>
+									Choose a URL for your public booking page and decide when it’s visible.
+								</Card.Description>
+							</Card.Header>
+							<Card.Content class="space-y-4">
+								<form
+									method="post"
+									action="?/publicPage"
+									class="grid gap-4 md:grid-cols-[1fr_1fr] md:items-end"
+									use:enhance={handlePublicEnhance}
+								>
+									<input type="hidden" name="isPublic" value={isPublic ? 'on' : ''} />
+									<div class="space-y-2 md:col-span-2">
+										<Label for="public-slug">Public page slug</Label>
+										<div class="grid gap-2 md:grid-cols-[1fr_auto] md:items-center">
+											<Input
+												id="public-slug"
+												name="publicSlug"
+												bind:value={publicSlug}
+												placeholder="your-name-1234"
+												required
+											/>
+											{#if publicPageUrl}
+												<Button
+													variant="outline"
+													size="sm"
+													class="gap-2"
+													href={publicPageUrl}
+													rel="noreferrer"
+													target="_blank"
+												>
+													<ExternalLinkIcon class="size-4" />
+													Open page
+												</Button>
+											{:else}
+												<Button variant="outline" size="sm" disabled>
+													<ExternalLinkIcon class="size-4" />
+													Open page
+												</Button>
+											{/if}
+										</div>
+										<div class="text-xs text-muted-foreground">
+											{#if publicPageUrl}
+												<span>Public link: </span>
+												<a
+													class="text-primary underline-offset-4 hover:underline"
+													href={publicPageUrl}
+													rel="noreferrer"
+													target="_blank"
+												>
+													{publicPageUrl}
+												</a>
+											{:else}
+												<span>Save a slug to generate the public link.</span>
+											{/if}
+										</div>
+									</div>
+									<div class="flex items-center gap-2 md:col-span-2">
+										<Checkbox id="is-public" bind:checked={isPublic} />
+										<Label for="is-public">Make public page visible</Label>
+									</div>
+									<div class="flex min-h-[1.25rem] items-center gap-3 md:col-span-2">
+										<Button type="submit" disabled={!canSavePublic}>
+											{#if publicSubmitting}
+												<Loader2Icon class="size-4 animate-spin" />
+												Saving…
+											{:else}
+												Save public page settings
+											{/if}
+										</Button>
+										<p
+											class="text-sm text-muted-foreground transition-opacity duration-500"
+											class:opacity-0={!publicSuccess}
+											aria-live="polite"
+										>
+											Settings saved.
+										</p>
+									</div>
+									{#if publicError}
+										<p class="text-sm text-destructive md:col-span-2">{publicError}</p>
+									{/if}
+								</form>
 							</Card.Content>
 						</Card.Root>
 					</div>
@@ -480,18 +632,19 @@
 											placeholder="Hi! I would like to book a session..."
 										></textarea>
 									</div>
-									<div class="flex items-center gap-3 md:col-span-2">
+									<div class="flex min-h-[1.25rem] items-center gap-3 md:col-span-2">
 										<Button type="submit" disabled={!canSaveSettings}>
 											{#if settingsSubmitting}
 												<Loader2Icon class="size-4 animate-spin" />
 												Saving…
 											{:else}
-												Save settings
+												Save scheduler settings
 											{/if}
 										</Button>
 										<p
 											class="text-sm text-muted-foreground transition-opacity duration-500"
 											class:opacity-0={!settingsSuccess}
+											aria-live="polite"
 										>
 											Settings saved.
 										</p>
