@@ -12,6 +12,7 @@
 	} from '$lib/components/ui/card';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
 	import { APP_NAME } from '$lib/constants';
 	import Loader2Icon from '@tabler/icons-svelte/icons/loader-2';
 	import { tick } from 'svelte';
@@ -46,7 +47,16 @@
 			}
 			showTransition = true;
 			const next = nextPath ?? $page.url.searchParams.get('next') ?? '/app';
-			await goto(next);
+			const allowedNext =
+				next === '/' ||
+				next === '/app' ||
+				next === '/app/scheduler' ||
+				next === '/app/account' ||
+				next === '/app/settings' ||
+				next === '/app/documents'
+					? next
+					: '/app';
+			await goto(resolve(allowedNext));
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Unable to sign in.';
 		} finally {
@@ -103,7 +113,7 @@
 
 		<p class="mt-4 text-sm text-muted-foreground">
 			No account?
-			<a class="underline" href="/register">Create one</a>
+			<a class="underline" href={resolve('/register')}>Create one</a>
 		</p>
 	</CardContent>
 </Card>

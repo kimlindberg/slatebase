@@ -20,6 +20,7 @@
 	import AppSidebar from '$lib/components/admin/app-sidebar.svelte';
 	import SiteHeader from '$lib/components/admin/site-header.svelte';
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import type { SubmitFunction } from '@sveltejs/kit';
 
 	let { data } = $props();
@@ -545,7 +546,7 @@
 												<span>Public link: </span>
 												<a
 													class="text-primary underline-offset-4 hover:underline"
-													href={publicPageUrl}
+													href={resolve('/c/[slug]', { slug: normalizedSlug })}
 													rel="noreferrer"
 													target="_blank"
 												>

@@ -3,13 +3,14 @@
 	import type { WithoutChildren } from '$lib/utils.js';
 	import type { ComponentProps } from 'svelte';
 	import type { Icon } from '@tabler/icons-svelte';
+	import { resolve } from '$app/paths';
 
 	let {
 		items,
 		...restProps
-	}: { items: { title: string; url: string; icon: Icon }[] } & WithoutChildren<
-		ComponentProps<typeof Sidebar.Group>
-	> = $props();
+	}: {
+		items: readonly { title: string; url: '/app/settings'; icon: Icon }[];
+	} & WithoutChildren<ComponentProps<typeof Sidebar.Group>> = $props();
 </script>
 
 <Sidebar.Group {...restProps}>
@@ -19,7 +20,7 @@
 				<Sidebar.MenuItem>
 					<Sidebar.MenuButton>
 						{#snippet child({ props })}
-							<a href={item.url} {...props}>
+							<a href={resolve(item.url)} {...props}>
 								<item.icon />
 								<span>{item.title}</span>
 							</a>

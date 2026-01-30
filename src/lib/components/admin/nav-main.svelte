@@ -2,8 +2,15 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import type { Icon } from '@tabler/icons-svelte';
 	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
 
-	let { items }: { items: { title: string; url: string; icon?: Icon }[] } = $props();
+	type NavMainRoute = '/app' | '/app/scheduler';
+
+	let {
+		items
+	}: {
+		items: readonly { title: string; url: NavMainRoute; icon?: Icon }[];
+	} = $props();
 </script>
 
 <Sidebar.Group>
@@ -16,7 +23,7 @@
 						isActive={$page.url.pathname === item.url}
 					>
 						{#snippet child({ props })}
-							<a href={item.url} {...props}>
+							<a href={resolve(item.url)} {...props}>
 								{#if item.icon}
 									<item.icon />
 								{/if}

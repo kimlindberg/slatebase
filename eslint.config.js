@@ -39,14 +39,5 @@ export default defineConfig(
 			}
 		}
 	},
-	{
-		files: [
-			'src/lib/components/admin/**/*.svelte',
-			'src/lib/components/app/LoginForm.svelte',
-			'src/routes/app/(admin)/scheduler/+page.svelte'
-		],
-		rules: {
-			'svelte/no-navigation-without-resolve': 'off'
-		}
-	}
+	{}
 );
