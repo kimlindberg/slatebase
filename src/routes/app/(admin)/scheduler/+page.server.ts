@@ -10,6 +10,11 @@ export const load: PageServerLoad = async ({ cookies, fetch }) => {
 	let icloudUsername = "";
 	let selectedCalendarIds: string[] = [];
 	let calendars: { id: string; title: string }[] = [];
+	let schedulerSettings = {
+		workdayStart: "09:00",
+		workdayEnd: "17:00",
+		whatsappMessage: "",
+	};
 	if (user) {
 		try {
 			const response = await fetch("/api/integrations/icloud", {
@@ -27,12 +32,18 @@ export const load: PageServerLoad = async ({ cookies, fetch }) => {
 				const result = await calendarsResponse.json();
 				calendars = result.calendars ?? [];
 			}
+			const settingsResponse = await fetch("/api/scheduler/settings", {
+				headers: { accept: "application/json" },
+			});
+			if (settingsResponse.ok) {
+				schedulerSettings = await settingsResponse.json();
+			}
 		} catch {
 			icloudUsername = "";
 		}
 	}
 
-	return { user, icloudUsername, calendars, selectedCalendarIds };
+	return { user, icloudUsername, calendars, selectedCalendarIds, schedulerSettings };
 };
 
 export const actions: Actions = {
@@ -121,6 +132,41 @@ export const actions: Actions = {
 		} catch (err) {
 			return fail(500, {
 				deleteError: err instanceof Error ? err.message : "Unable to delete integration.",
+			});
+		}
+	},
+	settings: async ({ request, cookies, fetch }) => {
+		const formData = await request.formData();
+		const workdayStart = (formData.get("workdayStart") ?? "").toString();
+		const workdayEnd = (formData.get("workdayEnd") ?? "").toString();
+		const whatsappMessage = (formData.get("whatsappMessage") ?? "").toString();
+
+		if (!workdayStart || !workdayEnd) {
+			return fail(400, { settingsError: "Working hours are required." });
+		}
+
+		const supabase = supabaseServer(cookies);
+		const { data } = await supabase.auth.getUser();
+		if (!data.user) {
+			return fail(401, { settingsError: "Not authenticated." });
+		}
+
+		try {
+			const response = await fetch("/api/scheduler/settings", {
+				method: "POST",
+				body: formData,
+				headers: { accept: "application/json" },
+			});
+			const result = await response.json();
+			if (!response.ok) {
+				return fail(response.status, {
+					settingsError: result?.error ?? "Unable to save settings.",
+				});
+			}
+			return { settingsSuccess: true };
+		} catch (err) {
+			return fail(500, {
+				settingsError: err instanceof Error ? err.message : "Unable to save settings.",
 			});
 		}
 	},

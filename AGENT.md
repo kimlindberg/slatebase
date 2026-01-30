@@ -154,6 +154,42 @@ If unsure, default to `lib/server`.
 
 ---
 
+### 5.6 Settings & configuration (IMPORTANT)
+
+Do not create separate tables for feature-specific or fast-changing settings
+(e.g. iCloud / CalDAV config, selected calendars, working hours, WhatsApp message templates, anonymization flags, UI preferences, etc).
+
+All provider-level configuration must be stored in a single JSONB column:
+
+- `providers.settings`
+
+Only stable and frequently queried fields should exist as real columns, for example:
+
+- `public_slug`
+- `timezone`
+- `is_public`
+
+Settings must be grouped by feature inside the JSON structure:
+
+- `settings.calendar.*`
+- `settings.workingHours.*`
+- `settings.whatsapp.*`
+
+Create a new table only when the data is:
+
+- multi-row or repeatable
+- relational
+- requires history / auditing
+- heavily queried
+
+All access to provider settings must go through a single domain module:
+
+- `src/lib/server/domain/settings/providerSettings.ts`
+
+Direct reads or writes to `providers.settings` from UI code, page controllers, or API routes are not allowed.
+
+---
+
 ### 5.5 Prohibited patterns
 
 ❌ Business logic inside `routes/api`  

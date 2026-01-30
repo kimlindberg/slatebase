@@ -40,6 +40,13 @@
 	let deleteError = $state<string | null>(null);
 	let deleteTimer: ReturnType<typeof setTimeout> | null = null;
 	let initialized = $state(false);
+	let workdayStart = $state("09:00");
+	let workdayEnd = $state("17:00");
+	let whatsappMessage = $state("");
+	let settingsSubmitting = $state(false);
+	let settingsSuccess = $state(false);
+	let settingsError = $state<string | null>(null);
+	let settingsTimer: ReturnType<typeof setTimeout> | null = null;
 
 	$effect(() => {
 		if (initialized) return;
@@ -47,6 +54,9 @@
 		calendars = data.calendars ?? [];
 		selectedCalendarIds = data.selectedCalendarIds ?? [];
 		connected = (data.icloudUsername ?? "").trim().length > 0;
+		workdayStart = data.schedulerSettings?.workdayStart ?? "09:00";
+		workdayEnd = data.schedulerSettings?.workdayEnd ?? "17:00";
+		whatsappMessage = data.schedulerSettings?.whatsappMessage ?? "";
 		initialized = true;
 	});
 
@@ -66,6 +76,9 @@
 	});
 	const canSaveSelection = $derived(selectedCalendarIds.length > 0 && !selectionSubmitting);
 	const isConnected = $derived(connected);
+	const canSaveSettings = $derived(
+		workdayStart.trim().length > 0 && workdayEnd.trim().length > 0 && !settingsSubmitting
+	);
 
 	const clearTimer = () => {
 		if (successTimer) clearTimeout(successTimer);
@@ -150,6 +163,32 @@
 				deleteTimer = setTimeout(() => {
 					deleteSuccess = false;
 					deleteTimer = null;
+				}, 2000);
+			}
+		};
+	};
+
+	const handleSettingsEnhance = () => {
+		settingsSubmitting = true;
+		settingsError = null;
+		settingsSuccess = false;
+		if (settingsTimer) {
+			clearTimeout(settingsTimer);
+			settingsTimer = null;
+		}
+
+		return async ({ result, update }) => {
+			settingsSubmitting = false;
+			await update({ reset: false });
+			if (result.type === "failure") {
+				settingsError = result.data?.settingsError ?? "Unable to save settings.";
+				return;
+			}
+			if (result.type === "success") {
+				settingsSuccess = true;
+				settingsTimer = setTimeout(() => {
+					settingsSuccess = false;
+					settingsTimer = null;
 				}, 2000);
 			}
 		};
@@ -391,6 +430,82 @@
 										</p>
 									{/if}
 								{/if}
+							</Card.Content>
+						</Card.Root>
+					</div>
+					<div class="px-4 lg:px-6">
+						<Card.Root>
+							<Card.Header>
+								<Card.Title>Scheduler settings</Card.Title>
+								<Card.Description>
+									Set default availability and booking request defaults.
+								</Card.Description>
+							</Card.Header>
+							<Card.Content class="space-y-4">
+								<form
+									method="post"
+									action="?/settings"
+									class="grid gap-4 md:grid-cols-[1fr_1fr] md:items-end"
+									use:enhance={handleSettingsEnhance}
+								>
+									<div class="space-y-2">
+										<Label for="workday-start">Working hours start</Label>
+										<Input
+											id="workday-start"
+											type="time"
+											step="60"
+											bind:value={workdayStart}
+											name="workdayStart"
+											required
+										/>
+									</div>
+									<div class="space-y-2">
+										<Label for="workday-end">Working hours end</Label>
+										<Input
+											id="workday-end"
+											type="time"
+											step="60"
+											bind:value={workdayEnd}
+											name="workdayEnd"
+											required
+										/>
+									</div>
+									<div class="space-y-2 md:col-span-2">
+										<Label for="whatsapp-message">WhatsApp booking request message</Label>
+										<textarea
+											id="whatsapp-message"
+											name="whatsappMessage"
+											bind:value={whatsappMessage}
+											rows="4"
+											class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 dark:bg-input/30 dark:border-input flex min-h-[100px] w-full rounded-md border px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+											placeholder="Hi! I would like to book a session..."
+										></textarea>
+									</div>
+									<div class="flex items-center gap-3 md:col-span-2">
+										<Button type="submit" disabled={!canSaveSettings}>
+											{#if settingsSubmitting}
+												<Loader2Icon class="size-4 animate-spin" />
+												Saving…
+											{:else}
+												Save settings
+											{/if}
+										</Button>
+										<p
+											class="text-sm text-muted-foreground transition-opacity duration-500"
+											class:opacity-0={!settingsSuccess}
+										>
+											Settings saved.
+										</p>
+									</div>
+									{#if settingsError}
+										<p class="text-sm text-destructive md:col-span-2">{settingsError}</p>
+									{/if}
+									{#if !canSaveSettings && !settingsSubmitting}
+										<p class="text-xs text-muted-foreground md:col-span-2">
+											Start and end time are required.
+										</p>
+									{/if}
+								</form>
 							</Card.Content>
 						</Card.Root>
 					</div>
