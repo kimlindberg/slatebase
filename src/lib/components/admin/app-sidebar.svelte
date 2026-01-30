@@ -1,144 +1,144 @@
 <script lang="ts">
-	import CameraIcon from "@tabler/icons-svelte/icons/camera";
-	import ChartBarIcon from "@tabler/icons-svelte/icons/chart-bar";
-	import DashboardIcon from "@tabler/icons-svelte/icons/dashboard";
-	import DatabaseIcon from "@tabler/icons-svelte/icons/database";
-	import FileAiIcon from "@tabler/icons-svelte/icons/file-ai";
-	import FileDescriptionIcon from "@tabler/icons-svelte/icons/file-description";
-	import FileWordIcon from "@tabler/icons-svelte/icons/file-word";
-	import FolderIcon from "@tabler/icons-svelte/icons/folder";
-	import HelpIcon from "@tabler/icons-svelte/icons/help";
-	import SteamIcon from "@tabler/icons-svelte/icons/steam";
-	import ListDetailsIcon from "@tabler/icons-svelte/icons/list-details";
-	import ReportIcon from "@tabler/icons-svelte/icons/report";
-	import SearchIcon from "@tabler/icons-svelte/icons/search";
-	import SettingsIcon from "@tabler/icons-svelte/icons/settings";
-	import UsersIcon from "@tabler/icons-svelte/icons/users";
-	import NavDocuments from "./nav-documents.svelte";
-	import NavMain from "./nav-main.svelte";
-	import NavSecondary from "./nav-secondary.svelte";
-	import NavUser from "./nav-user.svelte";
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import type { ComponentProps } from "svelte";
-	import type { User } from "@supabase/supabase-js";
-	import { APP_NAME } from "$lib/constants";
-	import CalendarIcon from "@tabler/icons-svelte/icons/calendar";
+	import CameraIcon from '@tabler/icons-svelte/icons/camera';
+	import ChartBarIcon from '@tabler/icons-svelte/icons/chart-bar';
+	import DashboardIcon from '@tabler/icons-svelte/icons/dashboard';
+	import DatabaseIcon from '@tabler/icons-svelte/icons/database';
+	import FileAiIcon from '@tabler/icons-svelte/icons/file-ai';
+	import FileDescriptionIcon from '@tabler/icons-svelte/icons/file-description';
+	import FileWordIcon from '@tabler/icons-svelte/icons/file-word';
+	import FolderIcon from '@tabler/icons-svelte/icons/folder';
+	import HelpIcon from '@tabler/icons-svelte/icons/help';
+	import SteamIcon from '@tabler/icons-svelte/icons/steam';
+	import ListDetailsIcon from '@tabler/icons-svelte/icons/list-details';
+	import ReportIcon from '@tabler/icons-svelte/icons/report';
+	import SearchIcon from '@tabler/icons-svelte/icons/search';
+	import SettingsIcon from '@tabler/icons-svelte/icons/settings';
+	import UsersIcon from '@tabler/icons-svelte/icons/users';
+	import NavDocuments from './nav-documents.svelte';
+	import NavMain from './nav-main.svelte';
+	import NavSecondary from './nav-secondary.svelte';
+	import NavUser from './nav-user.svelte';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import type { ComponentProps } from 'svelte';
+	import type { User } from '@supabase/supabase-js';
+	import { APP_NAME } from '$lib/constants';
+	import CalendarIcon from '@tabler/icons-svelte/icons/calendar';
 
 	const data = {
 		navMain: [
 			{
-				title: "Dashboard",
-				url: "/app",
-				icon: DashboardIcon,
+				title: 'Dashboard',
+				url: '/app',
+				icon: DashboardIcon
 			},
 			{
-				title: "Scheduler",
-				url: "/app/scheduler",
-				icon: CalendarIcon,
+				title: 'Scheduler',
+				url: '/app/scheduler',
+				icon: CalendarIcon
 			},
 			{
-				title: "Lifecycle",
-				url: "#",
-				icon: ListDetailsIcon,
+				title: 'Lifecycle',
+				url: '#',
+				icon: ListDetailsIcon
 			},
 			{
-				title: "Analytics",
-				url: "#",
-				icon: ChartBarIcon,
+				title: 'Analytics',
+				url: '#',
+				icon: ChartBarIcon
 			},
 			{
-				title: "Projects",
-				url: "#",
-				icon: FolderIcon,
+				title: 'Projects',
+				url: '#',
+				icon: FolderIcon
 			},
 			{
-				title: "Team",
-				url: "#",
-				icon: UsersIcon,
-			},
+				title: 'Team',
+				url: '#',
+				icon: UsersIcon
+			}
 		],
 		navClouds: [
 			{
-				title: "Capture",
+				title: 'Capture',
 				icon: CameraIcon,
 				isActive: true,
-				url: "#",
+				url: '#',
 				items: [
 					{
-						title: "Active Proposals",
-						url: "#",
+						title: 'Active Proposals',
+						url: '#'
 					},
 					{
-						title: "Archived",
-						url: "#",
-					},
-				],
+						title: 'Archived',
+						url: '#'
+					}
+				]
 			},
 			{
-				title: "Proposal",
+				title: 'Proposal',
 				icon: FileDescriptionIcon,
-				url: "#",
+				url: '#',
 				items: [
 					{
-						title: "Active Proposals",
-						url: "#",
+						title: 'Active Proposals',
+						url: '#'
 					},
 					{
-						title: "Archived",
-						url: "#",
-					},
-				],
+						title: 'Archived',
+						url: '#'
+					}
+				]
 			},
 			{
-				title: "Prompts",
+				title: 'Prompts',
 				icon: FileAiIcon,
-				url: "#",
+				url: '#',
 				items: [
 					{
-						title: "Active Proposals",
-						url: "#",
+						title: 'Active Proposals',
+						url: '#'
 					},
 					{
-						title: "Archived",
-						url: "#",
-					},
-				],
-			},
+						title: 'Archived',
+						url: '#'
+					}
+				]
+			}
 		],
 		navSecondary: [
 			{
-				title: "Settings",
-				url: "#",
-				icon: SettingsIcon,
+				title: 'Settings',
+				url: '#',
+				icon: SettingsIcon
 			},
 			{
-				title: "Get Help",
-				url: "#",
-				icon: HelpIcon,
+				title: 'Get Help',
+				url: '#',
+				icon: HelpIcon
 			},
 			{
-				title: "Search",
-				url: "#",
-				icon: SearchIcon,
-			},
+				title: 'Search',
+				url: '#',
+				icon: SearchIcon
+			}
 		],
 		documents: [
 			{
-				name: "Data Library",
-				url: "#",
-				icon: DatabaseIcon,
+				name: 'Data Library',
+				url: '#',
+				icon: DatabaseIcon
 			},
 			{
-				name: "Reports",
-				url: "#",
-				icon: ReportIcon,
+				name: 'Reports',
+				url: '#',
+				icon: ReportIcon
 			},
 			{
-				name: "Word Assistant",
-				url: "#",
-				icon: FileWordIcon,
-			},
-		],
+				name: 'Word Assistant',
+				url: '#',
+				icon: FileWordIcon
+			}
+		]
 	};
 
 	let {
@@ -148,14 +148,15 @@
 		user?: User | null;
 	} = $props();
 
-	const displayName = $derived.by(() =>
-		(user?.user_metadata?.display_name as string | undefined) ??
-		(user?.user_metadata?.full_name as string | undefined) ??
-		(user?.user_metadata?.name as string | undefined) ??
-		user?.email?.split("@")[0] ??
-		"User"
+	const displayName = $derived.by(
+		() =>
+			(user?.user_metadata?.display_name as string | undefined) ??
+			(user?.user_metadata?.full_name as string | undefined) ??
+			(user?.user_metadata?.name as string | undefined) ??
+			user?.email?.split('@')[0] ??
+			'User'
 	);
-	const email = $derived.by(() => user?.email ?? "");
+	const email = $derived.by(() => user?.email ?? '');
 </script>
 
 <Sidebar.Root collapsible="offcanvas" {...restProps}>

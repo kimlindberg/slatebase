@@ -1,11 +1,11 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { createDAVClient } from "tsdav";
-import { ICLOUD_CALDAV_URL, ICLOUD_CALENDAR_CACHE_MINUTES } from "$env/static/private";
-import { decryptJson, encryptJson } from "$lib/server/crypto/encryption";
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createDAVClient } from 'tsdav';
+import { ICLOUD_CALDAV_URL, ICLOUD_CALENDAR_CACHE_MINUTES } from '$env/static/private';
+import { decryptJson, encryptJson } from '$lib/server/crypto/encryption';
 import {
 	getProviderSettings,
-	upsertProviderSettings,
-} from "$lib/server/domain/settings/providerSettings";
+	upsertProviderSettings
+} from '$lib/server/domain/settings/providerSettings';
 
 type IcloudCredentials = {
 	userId: string;
@@ -13,15 +13,12 @@ type IcloudCredentials = {
 	appPassword: string;
 };
 
-export async function getIcloudIntegrationUsername(
-	supabase: SupabaseClient,
-	userId: string
-) {
+export async function getIcloudIntegrationUsername(supabase: SupabaseClient, userId: string) {
 	const { data, error } = await supabase
-		.from("integrations")
-		.select("external_username")
-		.eq("integration_type", "icloud")
-		.eq("user_id", userId)
+		.from('integrations')
+		.select('external_username')
+		.eq('integration_type', 'icloud')
+		.eq('user_id', userId)
 		.maybeSingle();
 
 	if (error) {
@@ -31,8 +28,8 @@ export async function getIcloudIntegrationUsername(
 	const settings = await getProviderSettings(supabase, userId);
 
 	return {
-		username: data?.external_username ?? "",
-		selectedCalendarIds: settings.calendar?.selectedCalendarIds ?? [],
+		username: data?.external_username ?? '',
+		selectedCalendarIds: settings.calendar?.selectedCalendarIds ?? []
 	};
 }
 
@@ -43,32 +40,32 @@ export async function upsertIcloudIntegration(
 	const { userId, username, appPassword } = credentials;
 
 	const { data: integration, error: integrationError } = await supabase
-		.from("integrations")
+		.from('integrations')
 		.upsert(
 			{
 				user_id: userId,
-				integration_type: "icloud",
+				integration_type: 'icloud',
 				external_username: username,
 				external_email: username,
-				status: "active",
+				status: 'active'
 			},
-			{ onConflict: "user_id,integration_type" }
+			{ onConflict: 'user_id,integration_type' }
 		)
-		.select("id")
+		.select('id')
 		.single();
 
 	if (integrationError || !integration) {
-		throw new Error(integrationError?.message ?? "Unable to save integration.");
+		throw new Error(integrationError?.message ?? 'Unable to save integration.');
 	}
 
 	const encrypted = encryptJson({ app_password: appPassword });
-	const { error: secretsError } = await supabase.from("integration_secrets").upsert(
+	const { error: secretsError } = await supabase.from('integration_secrets').upsert(
 		{
 			integration_id: integration.id,
 			user_id: userId,
-			secret: encrypted,
+			secret: encrypted
 		},
-		{ onConflict: "integration_id" }
+		{ onConflict: 'integration_id' }
 	);
 
 	if (secretsError) {
@@ -81,10 +78,10 @@ export async function getIcloudCredentials(
 	userId: string
 ): Promise<{ username: string; appPassword: string }> {
 	const { data: integration, error } = await supabase
-		.from("integrations")
-		.select("id, external_username")
-		.eq("integration_type", "icloud")
-		.eq("user_id", userId)
+		.from('integrations')
+		.select('id, external_username')
+		.eq('integration_type', 'icloud')
+		.eq('user_id', userId)
 		.maybeSingle();
 
 	if (error) {
@@ -92,13 +89,13 @@ export async function getIcloudCredentials(
 	}
 
 	if (!integration?.external_username) {
-		throw new Error("iCloud integration not found.");
+		throw new Error('iCloud integration not found.');
 	}
 
 	const { data: secrets, error: secretsError } = await supabase
-		.from("integration_secrets")
-		.select("secret")
-		.eq("integration_id", integration.id)
+		.from('integration_secrets')
+		.select('secret')
+		.eq('integration_id', integration.id)
 		.maybeSingle();
 
 	if (secretsError) {
@@ -106,7 +103,7 @@ export async function getIcloudCredentials(
 	}
 
 	if (!secrets?.secret) {
-		throw new Error("iCloud credentials not found.");
+		throw new Error('iCloud credentials not found.');
 	}
 
 	const decrypted = decryptJson<{ app_password: string }>(secrets.secret);
@@ -126,17 +123,17 @@ export async function fetchIcloudCalendars(params: {
 	}
 
 	if (!ICLOUD_CALDAV_URL) {
-		throw new Error("ICLOUD_CALDAV_URL is not set.");
+		throw new Error('ICLOUD_CALDAV_URL is not set.');
 	}
 
 	const client = await createDAVClient({
 		serverUrl: ICLOUD_CALDAV_URL,
 		credentials: {
 			username: params.username,
-			password: params.appPassword,
+			password: params.appPassword
 		},
-		authMethod: "Basic",
-		defaultAccountType: "caldav",
+		authMethod: 'Basic',
+		defaultAccountType: 'caldav'
 	});
 
 	const calendars = await client.fetchCalendars();
@@ -157,10 +154,10 @@ export async function fetchIcloudCalendars(params: {
 			return {
 				id: calendar.url,
 				title:
-					typeof calendar.displayName === "string" && calendar.displayName.length > 0
+					typeof calendar.displayName === 'string' && calendar.displayName.length > 0
 						? calendar.displayName
 						: calendar.url,
-				hasActivity,
+				hasActivity
 			};
 		})
 	);
@@ -175,10 +172,7 @@ export async function fetchIcloudCalendars(params: {
 
 type CalendarSummary = { id: string; title: string };
 
-const calendarCache = new Map<
-	string,
-	{ expiresAt: number; calendars: CalendarSummary[] }
->();
+const calendarCache = new Map<string, { expiresAt: number; calendars: CalendarSummary[] }>();
 
 const getCacheTtlMs = () => {
 	const minutes = Number(ICLOUD_CALENDAR_CACHE_MINUTES ?? 10);
@@ -199,7 +193,7 @@ const getCachedCalendars = (key: string) => {
 const setCachedCalendars = (key: string, calendars: CalendarSummary[]) => {
 	calendarCache.set(key, {
 		expiresAt: Date.now() + getCacheTtlMs(),
-		calendars,
+		calendars
 	});
 };
 
@@ -207,15 +201,12 @@ export const invalidateIcloudCalendarCache = (key: string) => {
 	calendarCache.delete(key);
 };
 
-export async function deleteIcloudIntegration(
-	supabase: SupabaseClient,
-	userId: string
-) {
+export async function deleteIcloudIntegration(supabase: SupabaseClient, userId: string) {
 	const { error } = await supabase
-		.from("integrations")
+		.from('integrations')
 		.delete()
-		.eq("integration_type", "icloud")
-		.eq("user_id", userId);
+		.eq('integration_type', 'icloud')
+		.eq('user_id', userId);
 
 	if (error) {
 		throw new Error(error.message);
@@ -229,20 +220,16 @@ export async function updateIcloudSelectedCalendars(
 ) {
 	await upsertProviderSettings(supabase, userId, {
 		calendar: {
-			selectedCalendarIds: calendarIds,
-		},
+			selectedCalendarIds: calendarIds
+		}
 	});
 }
 
-const objectHasActivityInRange = (
-	rawData: unknown,
-	windowStart: Date,
-	windowEnd: Date
-) => {
-	if (typeof rawData !== "string") return false;
+const objectHasActivityInRange = (rawData: unknown, windowStart: Date, windowEnd: Date) => {
+	if (typeof rawData !== 'string') return false;
 
-	const dtstart = extractIcsDate(rawData, "DTSTART");
-	const dtend = extractIcsDate(rawData, "DTEND");
+	const dtstart = extractIcsDate(rawData, 'DTSTART');
+	const dtend = extractIcsDate(rawData, 'DTEND');
 	if (!dtstart && !dtend) return false;
 
 	const start = dtstart ?? dtend;
@@ -252,7 +239,7 @@ const objectHasActivityInRange = (
 	return start <= windowEnd && end >= windowStart;
 };
 
-const extractIcsDate = (raw: string, field: "DTSTART" | "DTEND") => {
+const extractIcsDate = (raw: string, field: 'DTSTART' | 'DTEND') => {
 	const regex = new RegExp(`${field}(;[^:]*)?:(\\d{8}T\\d{6}Z|\\d{8}T\\d{6}|\\d{8})`);
 	const match = raw.match(regex);
 	if (!match) return null;
@@ -272,7 +259,7 @@ const extractIcsDate = (raw: string, field: "DTSTART" | "DTEND") => {
 	const minute = Number(value.slice(11, 13));
 	const second = Number(value.slice(13, 15));
 
-	if (value.endsWith("Z")) {
+	if (value.endsWith('Z')) {
 		return new Date(Date.UTC(year, month, day, hour, minute, second));
 	}
 

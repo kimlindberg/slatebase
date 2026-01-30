@@ -1,9 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import type { Cookies } from '@sveltejs/kit';
-import {
-	PUBLIC_SUPABASE_URL,
-	PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-} from '$env/static/public';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY } from '$env/static/public';
 
 export function supabaseServer(cookies: Cookies) {
 	return createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY, {

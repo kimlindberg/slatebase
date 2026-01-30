@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Separator } from "$lib/components/ui/separator/index.js";
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+	import { Separator } from '$lib/components/ui/separator/index.js';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 
-	let { title = "Dashboard" }: { title?: string } = $props();
+	let { title = 'Dashboard' }: { title?: string } = $props();
 </script>
 
 <header

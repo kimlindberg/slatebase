@@ -5,6 +5,7 @@
 Slatebase is a platform for service professionals (initially personal trainers) to run their business.
 
 Core capabilities:
+
 - Admin interface for managing customers, scheduling, bookings, invoices, and settings
 - Public-facing scheduling / availability pages for customers
 - Integrated booking requests (initially via WhatsApp)
@@ -23,6 +24,7 @@ The calendar is part of **Scheduling**, not the entire product.
 - Supabase SSR via `@supabase/ssr`
 
 ### UI rules
+
 - Always use shadcn components when available
 - Keep admin UI visually consistent (no custom one-off components unless necessary)
 
@@ -31,6 +33,7 @@ The calendar is part of **Scheduling**, not the entire product.
 ## 3. Repository structure & routing (CRITICAL)
 
 ### Route groups (SvelteKit)
+
 - Route groups `(…)` are for organization only and **do not appear in URLs**
 - `(admin)` routes are protected
 - `(auth)` routes are public authentication flows
@@ -38,10 +41,12 @@ The calendar is part of **Scheduling**, not the entire product.
 ### Intended routing structure
 
 #### Public
+
 - `/`
   - `src/routes/+page.svelte` (public landing page)
 
 #### Admin app
+
 - `/app`
   - `src/routes/app/(admin)/+layout.server.ts` (auth guard)
   - `src/routes/app/(admin)/+layout.svelte` (admin shell)
@@ -49,12 +54,14 @@ The calendar is part of **Scheduling**, not the entire product.
   - `src/routes/app/(admin)/customers/+page.svelte` → `/app/customers`
 
 #### Auth
+
 - `/login`
   - `src/routes/(auth)/login/+page.svelte`
 - `/register`
   - `src/routes/(auth)/register/+page.svelte`
 
 ### Hard routing rules
+
 - ❌ Never have both:
   - `src/routes/+page.svelte`
   - `src/routes/(admin)/+page.svelte`
@@ -68,10 +75,12 @@ The calendar is part of **Scheduling**, not the entire product.
 ## 4. Supabase configuration
 
 ### Environment variables
+
 - `PUBLIC_SUPABASE_URL`
 - `PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
 
 ### Supabase clients
+
 - Browser client:
   - `src/lib/supabase/browser.ts`
 - Server client:
@@ -204,6 +213,7 @@ Violations should be refactored immediately.
 ## 6. UX conventions (admin UI)
 
 For dashboard forms:
+
 - Disable submit until required fields are valid
 - Show spinner inside the submit button while submitting
 - Show success message to the right of the button (no layout shift)
@@ -224,22 +234,24 @@ For dashboard forms:
 
 ## 8. Immediate priorities
 
-1) Finish login & register pages (shadcn style)
-2) Add admin shell layout (sidebar + header)
-3) Add logout endpoint and “Sign out” button
-4) Add protected admin landing page
+1. Finish login & register pages (shadcn style)
+2. Add admin shell layout (sidebar + header)
+3. Add logout endpoint and “Sign out” button
+4. Add protected admin landing page
 
 ---
 
 ## 9. Git commit conventions
 
 ### Format
+
 <type>(optional scope): short, imperative summary
 
 Optional body explaining why the change was made.  
 Optional footer for issues or breaking changes.
 
 ### Types
+
 - feat: new functionality
 - fix: bug fix
 - refactor: behavior-preserving change
@@ -249,6 +261,7 @@ Optional footer for issues or breaking changes.
 - docs: documentation only
 
 ### Rules
+
 - Use imperative mood (`add`, not `added`)
 - Keep subject ≤ 50 characters
 - No trailing punctuation
@@ -256,17 +269,22 @@ Optional footer for issues or breaking changes.
 - One logical change per commit
 
 ### Body
+
 - Explain why, not how
 - Mention constraints or tradeoffs if relevant
 
 ### Scope (optional)
+
 Use for larger repos, e.g. `feat(api):`, `fix(ui):`
 
 ### Issues
+
 Reference when applicable, e.g. `Closes #123`, `Refs: JIRA-456`
 
 ### Initial Commit
+
 `chore: initial commit`
 
 ### Avoid
+
 `wip`, `fix stuff`, `misc`, jokes, emojis, or multi-feature commits

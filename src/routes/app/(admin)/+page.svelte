@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import * as Card from "$lib/components/ui/card/index.js";
-	import AppSidebar from "$lib/components/admin/app-sidebar.svelte";
-	import SiteHeader from "$lib/components/admin/site-header.svelte";
-	import { APP_NAME } from "$lib/constants";
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import * as Card from '$lib/components/ui/card/index.js';
+	import AppSidebar from '$lib/components/admin/app-sidebar.svelte';
+	import SiteHeader from '$lib/components/admin/site-header.svelte';
+	import { APP_NAME } from '$lib/constants';
 
 	let { data } = $props();
 </script>
@@ -21,9 +21,7 @@
 						<Card.Root>
 							<Card.Header>
 								<Card.Title>Welcome to {APP_NAME}</Card.Title>
-								<Card.Description>
-									This is your dashboard start page.
-								</Card.Description>
+								<Card.Description>This is your dashboard start page.</Card.Description>
 							</Card.Header>
 							<Card.Content class="text-sm text-muted-foreground">
 								Select a section from the sidebar to get started.

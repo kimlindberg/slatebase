@@ -1,12 +1,12 @@
-import { json } from "@sveltejs/kit";
-import { supabaseServer } from "$lib/server/supabase/server";
-import { getSchedulerSettings, upsertSchedulerSettings } from "$lib/server/domain/scheduler";
+import { json } from '@sveltejs/kit';
+import { supabaseServer } from '$lib/server/supabase/server';
+import { getSchedulerSettings, upsertSchedulerSettings } from '$lib/server/domain/scheduler';
 
 export const GET = async ({ cookies }) => {
 	const supabase = supabaseServer(cookies);
 	const { data } = await supabase.auth.getUser();
 	if (!data.user) {
-		return json({ error: "Not authenticated." }, { status: 401 });
+		return json({ error: 'Not authenticated.' }, { status: 401 });
 	}
 
 	try {
@@ -14,7 +14,7 @@ export const GET = async ({ cookies }) => {
 		return json(settings);
 	} catch (err) {
 		return json(
-			{ error: err instanceof Error ? err.message : "Unable to load settings." },
+			{ error: err instanceof Error ? err.message : 'Unable to load settings.' },
 			{ status: 500 }
 		);
 	}
@@ -22,30 +22,30 @@ export const GET = async ({ cookies }) => {
 
 export const POST = async ({ request, cookies }) => {
 	const formData = await request.formData();
-	const workdayStart = (formData.get("workdayStart") ?? "").toString();
-	const workdayEnd = (formData.get("workdayEnd") ?? "").toString();
-	const whatsappMessage = (formData.get("whatsappMessage") ?? "").toString();
+	const workdayStart = (formData.get('workdayStart') ?? '').toString();
+	const workdayEnd = (formData.get('workdayEnd') ?? '').toString();
+	const whatsappMessage = (formData.get('whatsappMessage') ?? '').toString();
 
 	if (!workdayStart || !workdayEnd) {
-		return json({ error: "Working hours are required." }, { status: 400 });
+		return json({ error: 'Working hours are required.' }, { status: 400 });
 	}
 
 	const supabase = supabaseServer(cookies);
 	const { data } = await supabase.auth.getUser();
 	if (!data.user) {
-		return json({ error: "Not authenticated." }, { status: 401 });
+		return json({ error: 'Not authenticated.' }, { status: 401 });
 	}
 
 	try {
 		await upsertSchedulerSettings(supabase, data.user.id, {
 			workdayStart,
 			workdayEnd,
-			whatsappMessage,
+			whatsappMessage
 		});
 		return json({ ok: true });
 	} catch (err) {
 		return json(
-			{ error: err instanceof Error ? err.message : "Unable to save settings." },
+			{ error: err instanceof Error ? err.message : 'Unable to save settings.' },
 			{ status: 500 }
 		);
 	}

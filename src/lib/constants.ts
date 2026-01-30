@@ -1,1 +1,1 @@
-export const APP_NAME = "Slatebase";
+export const APP_NAME = 'Slatebase';
